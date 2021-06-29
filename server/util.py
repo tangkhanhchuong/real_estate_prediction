@@ -18,7 +18,6 @@ def get_data_columns():
 
 
 
-
 def load_saved_artifacts():
     print('loading saved artifacts...start')
     global __data_columns

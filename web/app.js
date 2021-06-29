@@ -1,62 +1,67 @@
-function getBathValue() {
-    var uiBathrooms = document.getElementsByName("uiBathrooms");
-    for(var i in uiBathrooms) {
-      if(uiBathrooms[i].checked) {
-          return parseInt(i)+1;
-      }
-    }
-    return -1; // Invalid Value
+const SYSTEM_URL = "http://localhost:5000"
+
+//get all locations
+
+const districtSelect = document.querySelector("#district")
+const getLocations = async (e) => {
+  const res = await fetch(`${SYSTEM_URL}/locations`)
+  const data = await res.json()
+  const locations = data.locations.filter((l, i) => i >= 9 && i <= 30)
+  locations.forEach((l) => {
+    const opt = new Option(l)
+    opt.selected = true
+    districtSelect.append(opt)
+  })
+}
+window.addEventListener("load", getLocations)
+
+//estimate real estate price
+
+const reForm = document.querySelector("form")
+const onSubmit = async (e) => {
+  e.preventDefault()
+
+  const dataBody = Object.values(e.target).map((e) => e.value)
+  const decodedData = {
+    area: dataBody[0],
+    used_area: dataBody[1],
+    bedrooms: dataBody[2],
+    bathrooms: dataBody[3],
+    furniture_status: dataBody[4],
+    balcony: dataBody[5],
+    garage: dataBody[6],
+    private_pool: dataBody[7],
+    sovereignty_type: dataBody[8],
+    district: dataBody[9],
   }
-  
-  function getBHKValue() {
-    var uiBHK = document.getElementsByName("uiBHK");
-    for(var i in uiBHK) {
-      if(uiBHK[i].checked) {
-          return parseInt(i)+1;
-      }
-    }
-    return -1; // Invalid Value
-  }
-  
-  function onClickedEstimatePrice() {
-    console.log("Estimate price button clicked");
-    var sqft = document.getElementById("uiSqft");
-    var bhk = getBHKValue();
-    var bathrooms = getBathValue();
-    var location = document.getElementById("uiLocations");
-    var estPrice = document.getElementById("uiEstimatedPrice");
-  
-    // var url = "http://127.0.0.1:5000/predict_home_price"; //Use this if you are NOT using nginx which is first 7 tutorials
-    var url = "/api/predict_home_price"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
-  
-    $.post(url, {
-        total_sqft: parseFloat(sqft.value),
-        bhk: bhk,
-        bath: bathrooms,
-        location: location.value
-    },function(data, status) {
-        console.log(data.estimated_price);
-        estPrice.innerHTML = "<h2>" + data.estimated_price.toString() + " Lakh</h2>";
-        console.log(status);
-    });
-  }
-  
-  function onPageLoad() {
-    console.log( "document loaded" );
-    // var url = "http://127.0.0.1:5000/get_location_names"; // Use this if you are NOT using nginx which is first 7 tutorials
-    var url = "/api/get_location_names"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
-    $.get(url,function(data, status) {
-        console.log("got response for get_location_names request");
-        if(data) {
-            var locations = data.locations;
-            var uiLocations = document.getElementById("uiLocations");
-            $('#uiLocations').empty();
-            for(var i in locations) {
-                var opt = new Option(locations[i]);
-                $('#uiLocations').append(opt);
-            }
-        }
-    });
-  }
-  
-  window.onload = onPageLoad;
+  console.log(decodedData)
+
+  const res = await axios.post(`${SYSTEM_URL}/predict`, {
+    body: decodedData,
+  })
+  const data = await res.data
+
+  const estimatedPrice = document.querySelector("#estimated_price")
+  console.log(estimatedPrice, data)
+  estimatedPrice.innerText = data.estimated_price
+}
+reForm.addEventListener("submit", onSubmit)
+
+//control number input
+
+const onNumberInputChange = (e) => {
+  const target = e.target
+  if (isNaN(target.value))
+    target.value = target.value.slice(0, target.value.length - 1)
+
+  if (target.value.length === 2 && target.value[0] == 0)
+    target.value = target.value.slice(1, target.value.length)
+
+  if (target.value.length === 0) target.value = 0
+}
+
+const inputs = document.querySelectorAll("input")
+for (let input of inputs) {
+  console.log(input)
+  input.addEventListener("input", onNumberInputChange)
+}
