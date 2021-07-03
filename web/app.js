@@ -1,7 +1,6 @@
 const SYSTEM_URL = "http://localhost:5000"
 
 //get all locations
-
 const districtSelect = document.querySelector("#district")
 const getLocations = async (e) => {
   const res = await fetch(`${SYSTEM_URL}/locations`)
@@ -16,11 +15,9 @@ const getLocations = async (e) => {
 window.addEventListener("load", getLocations)
 
 //estimate real estate price
-
 const reForm = document.querySelector("form")
 const onSubmit = async (e) => {
   e.preventDefault()
-
   const dataBody = Object.values(e.target).map((e) => e.value)
   const decodedData = {
     area: dataBody[0],
@@ -34,21 +31,17 @@ const onSubmit = async (e) => {
     sovereignty_type: dataBody[8],
     district: dataBody[9],
   }
-  console.log(decodedData)
-
   const res = await axios.post(`${SYSTEM_URL}/predict`, {
     body: decodedData,
   })
   const data = await res.data
-
   const estimatedPrice = document.querySelector("#estimated_price")
   console.log(estimatedPrice, data)
-  estimatedPrice.innerText = data.estimated_price
+  estimatedPrice.innerText = "Estimate Price: " + data.estimated_price
 }
 reForm.addEventListener("submit", onSubmit)
 
 //control number input
-
 const onNumberInputChange = (e) => {
   const target = e.target
   if (isNaN(target.value))
@@ -59,7 +52,6 @@ const onNumberInputChange = (e) => {
 
   if (target.value.length === 0) target.value = 0
 }
-
 const inputs = document.querySelectorAll("input")
 for (let input of inputs) {
   console.log(input)
